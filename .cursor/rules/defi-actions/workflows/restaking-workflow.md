@@ -56,9 +56,17 @@ transaction(
         let pair = IncrementFiStakingConnectors.borrowPairPublicByPid(pid: pid)
             ?? panic("Pair with ID \(pid) not found or not accessible")
 
+        // Derive token types from the pair
+        let token0Type = IncrementFiStakingConnectors.tokenTypeIdentifierToVaultType(pair.getPairInfoStruct().token0Key)
+        let token1Type = IncrementFiStakingConnectors.tokenTypeIdentifierToVaultType(pair.getPairInfoStruct().token1Key)
+        
+        // Check if we need to reverse token order: if reward token doesn't match token0, we reverse
+        // so that the reward token becomes token0 (the input token to the zapper)
+        let reverse = rewards.getSourceType() != token0Type
+        
         let zapper = IncrementFiPoolLiquidityConnectors.Zapper(
-            token0Type: IncrementFiStakingConnectors.tokenTypeIdentifierToVaultType(pair.getPairInfoStruct().token0Key),
-            token1Type: IncrementFiStakingConnectors.tokenTypeIdentifierToVaultType(pair.getPairInfoStruct().token1Key),
+            token0Type: reverse ? token1Type : token0Type,  // input token (reward token)
+            token1Type: reverse ? token0Type : token1Type,  // other pair token (zapper outputs token0:token1 LP)
             stableMode: pair.getPairInfoStruct().isStableswap,
             uniqueID: self.uniqueID
         )
@@ -108,8 +116,9 @@ transaction(
 - Returns a source that yields reward tokens for further composition
 
 ### Zapper
-- Converts reward tokens plus a pair token into LP tokens
+- Takes token0 (input) and pairs it with token1 to create token0:token1 LP tokens
 - Used via `SwapSource` to compose with the rewards source
+- **Token Ordering**: May need to reverse token0/token1 order based on which token is the reward token (ensure reward token becomes token0, the input)
 
 ### PoolSink
 - Stakes LP tokens back into the same pool for the user

@@ -24,7 +24,7 @@
 ## Build the Chain (Restake)
 - **Instantiate explicitly**: Create each connector separately with descriptive names and comments.
 - Source: `PoolRewardsSource(userCertificate, pid)`
-- Swapper: `Zapper(token0Type: derived token0 from pair, token1Type: derived token1 from pair, stableMode: pair.isStableswap)`
+- Swapper: `Zapper(token0Type: derived token0 from pair, token1Type: derived token1 from pair, stableMode: pair.isStableswap)` **Note**: Reverse token order if `rewardsSource.getSourceType() != token0Type` (reward token should be token0, the input)
 - Wrap: `SwapConnectors.SwapSource(swapper, source)`
 - Sink: `PoolSink(pid: pid, staker: userAddress)`
 - Unique ID: Create once (`operationID = DeFiActions.createUniqueIdentifier()`) and pass to all components.

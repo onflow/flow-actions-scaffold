@@ -143,6 +143,7 @@ Notes:
 - `quoteOut(reverse: false)` estimates LP from token0; `reverse: true` estimates token0 from LP.
 - `quoteIn` currently only supports `UFix64.max` as a placeholder.
 - `swapBack(quote:residual:)` converts LP back to token0 (the `inType`).
+- **Token Ordering**: When using with a source, check if `source.getSourceType() != token0Type`. If true, reverse the token order so the source token becomes token0 (the input token to the zapper). Zapper takes token0 as input and pairs it with token1 to create token0:token1 LP tokens.
 
 ---
 

@@ -44,7 +44,7 @@ import "Staking"
   - Issue `Capability<&Staking.UserCertificate>`.
   - Borrow pool via `IncrementFiStakingConnectors.borrowPool(pid:)` and record `startingStake`.
   - Create `operationID = DeFiActions.createUniqueIdentifier()`.
-  - Borrow pair via `IncrementFiStakingConnectors.borrowPairPublicByPid(pid:)` and construct `Zapper` using derived token types and `stableMode`, with `uniqueID: operationID`.
+  - Borrow pair via `IncrementFiStakingConnectors.borrowPairPublicByPid(pid:)` and construct `Zapper` using derived token types and `stableMode`, with `uniqueID: operationID`. **Important**: Check if `rewardsSource.getSourceType() != token0Type` and reverse token order if true (reward token should be token0, the input).
   - Create `PoolRewardsSource(userCertificate, pid, uniqueID: operationID)` and wrap with `SwapConnectors.SwapSource(..., uniqueID: operationID)`.
   - Compute `expectedStakeIncrease` via `zapper.quoteOut(forProvided: rewards.minimumAvailable(), reverse: false)`.
 - Execute:
@@ -64,7 +64,7 @@ import "Staking"
 ## Connector Facts
 - `IncrementFiStakingConnectors.PoolSink(pid, staker, uniqueID?)` infers `vaultType` from pool.
 - `IncrementFiStakingConnectors.PoolRewardsSource(userCertificate, pid, uniqueID?)` outputs inferred reward `vaultType`.
-- `IncrementFiPoolLiquidityConnectors.Zapper` is a `Swapper`; use `swap(quote:inVault:)` and `swapBack` as needed. There is no separate `UnZapper` type.
+- `IncrementFiPoolLiquidityConnectors.Zapper` is a `Swapper`; use `swap(quote:inVault:)` and `swapBack` as needed. There is no separate `UnZapper` type. **Token Ordering**: When using with a source, ensure the source token becomes token0 (the input) by reversing token order if `source.getSourceType() != token0Type`. Zapper takes token0 as input and pairs it with token1 to create token0:token1 LP tokens.
 - `SwapConnectors.SwapSource(swapper, source, uniqueID?)` exposes post-conversion as a `Source`.
 - Observed: `Zapper.quoteIn` only supports `UFix64.max`; prefer capacity-driven sizing via `quoteOut` and sink capacities.
 - Observed: `MultiSwapper.swap/swapBack` will self-quote if given a non-MultiSwapper quote or `nil`.

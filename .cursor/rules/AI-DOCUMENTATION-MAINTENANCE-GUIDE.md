@@ -1,6 +1,6 @@
-# Maintainers Update Plan (Do not include in agent context)
+# AI Documentation Maintenance Guide (Do not include in agent context)
 
-Audience: Human or tooling maintainers iterating on documentation. This is not a usage guide and should not be included in runtime agent prompts.
+Audience: AI agents acting as documentation maintainers when instructed by humans. This is a meta-guide for updating the documentation files that the next AI agent will use. This file should not be included in runtime agent prompts.
 
 > Keep all links relative (e.g., `./docs/...`) so they remain valid when pages are copied to other contexts.
 
@@ -21,7 +21,7 @@ Audience: Human or tooling maintainers iterating on documentation. This is not a
 ## Goals
 - Keep docs concise for small context windows, but accurate to current contracts.
 - Reduce redundancy: Prefer canonical pages and cross-linking.
-- Capture non-obvious nuances briefly (e.g., Zapper quoteOut usage, sink-driven sizing).
+- Capture non-obvious nuances briefly (e.g., Zapper quoteOut usage, sink-driven sizing, token ordering reversal).
 
 ## Cross-file Linking
 - Always use relative markdown links (never bare paths or absolute links). Examples:
@@ -40,7 +40,7 @@ Audience: Human or tooling maintainers iterating on documentation. This is not a
 
 ## Success Criteria for the next AI agent’s outputs (guardrails)
 - Restake transactions accept only `pid`; do not introduce `rewardTokenType`, `pairTokenType`, or `minimumRestakedAmount`.
-- Derive pair token types and `stableMode` via `borrowPairPublicByPid(pid)` and `tokenTypeIdentifierToVaultType(_:)`.
+- Derive pair token types and `stableMode` via `borrowPairPublicByPid(pid)` and `tokenTypeIdentifierToVaultType(_:)`. Check if `rewardsSource.getSourceType() != token0Type` and reverse token order if true (reward token should be token0, the input).
 - Compute `expectedStakeIncrease = zapper.quoteOut(forProvided: rewards.minimumAvailable(), reverse: false).outAmount` and assert `newStake >= startingStake + expectedStakeIncrease` in `post`.
 - Use `withdrawAvailable(maxAmount: sink.minimumCapacity())` when immediately depositing.
 - Verify complete transfers with `assert(vault.balance == 0.0)` before `destroy`.
@@ -56,6 +56,7 @@ Audience: Human or tooling maintainers iterating on documentation. This is not a
 - IncrementFi Zapper:
   - `quoteIn` is placeholder (supports `UFix64.max` only). Prefer `quoteOut` and capacity‑driven sizing.
   - `swapBack` returns token0 (swapper `inType`).
+  - **Token Ordering**: When using with a source, check if `source.getSourceType() != token0Type` and reverse token order if true (reward token should be token0, the input). Zapper takes token0 as input and pairs it with token1 to create token0:token1 LP tokens.
 - `SwapConnectors.SwapSink` computes input using `quoteIn(forDesired: sink.minimumCapacity())` internally.
 
 ## Open Candidates for Future Iteration
@@ -70,4 +71,4 @@ Audience: Human or tooling maintainers iterating on documentation. This is not a
 - Keep [`ai-generation-entrypoint.mdc`](./defi-actions/ai-generation-entrypoint.mdc) minimal and paste‑ready for `.cursor/rules`. 
 
 ## Not in Agent Context
-- This file is meta‑documentation for maintainers. Do not feed into runtime AI prompts. 
+- This file is meta‑documentation for AI agents acting as maintainers. Do not feed into runtime AI prompts for the next generation AI agent. 

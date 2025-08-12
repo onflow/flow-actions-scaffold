@@ -153,9 +153,12 @@ let rewardSource = PoolRewardsSource(
     uniqueID: operationID
 )
 
+// Check if we need to reverse token order based on the reward source type
+let reverse = rewardSource.getSourceType() != token0Type
+
 let zapper = IncrementFiPoolLiquidityConnectors.Zapper(
-    token0Type: token0Type,
-    token1Type: token1Type,
+    token0Type: reverse ? token1Type : token0Type,  // input token (reward token)
+    token1Type: reverse ? token0Type : token1Type,  // other pair token (zapper outputs token0:token1 LP)
     stableMode: stableMode,
     uniqueID: operationID
 )
@@ -187,9 +190,12 @@ let rewardsSource = IncrementFiStakingConnectors.PoolRewardsSource(
     uniqueID: operationID
 )
 
+// Check if we need to reverse token order based on the reward source type
+let reverse = rewardsSource.getSourceType() != token0Type
+
 let zapper = IncrementFiPoolLiquidityConnectors.Zapper(
-    token0Type: token0Type,
-    token1Type: token1Type,
+    token0Type: reverse ? token1Type : token0Type,  // input token (reward token)
+    token1Type: reverse ? token0Type : token1Type,  // other pair token (zapper outputs token0:token1 LP)
     stableMode: stableMode,
     uniqueID: operationID
 )

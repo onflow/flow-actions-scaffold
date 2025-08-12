@@ -224,6 +224,8 @@ transaction(
             uniqueID: nil
         )
 
+        // Note: When token types are explicitly provided as parameters, use them directly
+        // The reverse logic is only needed when deriving tokens from a source and pair
         let zapper = IncrementFiPoolLiquidityConnectors.Zapper(
             token0Type: token0Type,
             token1Type: token1Type,
@@ -381,16 +383,24 @@ transaction(
 
         let operationID = DeFiActions.createUniqueIdentifier()
 
-        let zapper = IncrementFiPoolLiquidityConnectors.Zapper(
-            token0Type: IncrementFiStakingConnectors.tokenTypeIdentifierToVaultType(pair.getPairInfoStruct().token0Key),
-            token1Type: IncrementFiStakingConnectors.tokenTypeIdentifierToVaultType(pair.getPairInfoStruct().token1Key),
-            stableMode: pair.getPairInfoStruct().isStableswap,
-            uniqueID: operationID
-        )
+        // Derive token types from the pair
+        let token0Type = IncrementFiStakingConnectors.tokenTypeIdentifierToVaultType(pair.getPairInfoStruct().token0Key)
+        let token1Type = IncrementFiStakingConnectors.tokenTypeIdentifierToVaultType(pair.getPairInfoStruct().token1Key)
         
         let poolRewardsSource = IncrementFiStakingConnectors.PoolRewardsSource(
             userCertificate: self.userCertificateCap,
             pid: pid,
+            uniqueID: operationID
+        )
+        
+        // Check if we need to reverse token order: if reward token doesn't match token0, we reverse
+        // so that the reward token becomes token0 (the input token to the zapper)
+        let reverse = poolRewardsSource.getSourceType() != token0Type
+
+        let zapper = IncrementFiPoolLiquidityConnectors.Zapper(
+            token0Type: reverse ? token1Type : token0Type,  // input token (reward token)
+            token1Type: reverse ? token0Type : token1Type,  // other pair token (zapper outputs token0:token1 LP)
+            stableMode: pair.getPairInfoStruct().isStableswap,
             uniqueID: operationID
         )
         
