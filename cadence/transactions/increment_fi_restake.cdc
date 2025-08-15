@@ -37,18 +37,26 @@ transaction(
         let pair = IncrementFiStakingConnectors.borrowPairPublicByPid(pid: pid)
             ?? panic("Pair with ID \(pid) not found or not accessible")
 
-        // Create zapper to convert rewards to LP tokens
-        let zapper = IncrementFiPoolLiquidityConnectors.Zapper(
-            token0Type: IncrementFiStakingConnectors.tokenTypeIdentifierToVaultType(pair.getPairInfoStruct().token0Key),
-            token1Type: IncrementFiStakingConnectors.tokenTypeIdentifierToVaultType(pair.getPairInfoStruct().token1Key),
-            stableMode: pair.getPairInfoStruct().isStableswap,
-            uniqueID: self.operationID
-        )
+        // Derive token types from the pair
+        let token0Type = IncrementFiStakingConnectors.tokenTypeIdentifierToVaultType(pair.getPairInfoStruct().token0Key)
+        let token1Type = IncrementFiStakingConnectors.tokenTypeIdentifierToVaultType(pair.getPairInfoStruct().token1Key)
         
         // Create rewards source to claim staking rewards
         let rewardsSource = IncrementFiStakingConnectors.PoolRewardsSource(
             userCertificate: self.userCertificateCap,
             pid: pid,
+            uniqueID: self.operationID
+        )
+        
+        // Check if we need to reverse token order: if reward token doesn't match token0, we reverse
+        // so that the reward token becomes token0 (the input token to the zapper)
+        let reverse = rewardsSource.getSourceType() != token0Type
+        
+        // Create zapper to convert rewards to LP tokens
+        let zapper = IncrementFiPoolLiquidityConnectors.Zapper(
+            token0Type: reverse ? token1Type : token0Type,  // input token (reward token)
+            token1Type: reverse ? token0Type : token1Type,  // other pair token (zapper outputs token0:token1 LP)
+            stableMode: pair.getPairInfoStruct().isStableswap,
             uniqueID: self.operationID
         )
         
