@@ -288,14 +288,21 @@ log_detail "   🎯 Creating staking pool #0..."
     },
     {
       "type": "Optional",
-      "value": null
+      "value": {
+        "type": "Path",
+        "value": { "domain": "storage", "identifier": "tokenAVault" }
+      }
     },
     {
       "type": "Optional",
-      "value": null
+      "value": {
+        "type": "UFix64",
+        "value": "10000.00000000"
+      }
     }
   ]' > /dev/null
-log_detail "   ✓ Staking pool #0 created (rewards: LP tokens)"
+log_detail "   ✓ Staking pool #0 created (funded with 10,000 TokenA rewards)"
+
 
 # Setup staking certificate for the user
 log_detail "   📄 Setting up staking certificate..."
@@ -339,7 +346,7 @@ echo ""
 log_highlight "🎉 Increment Fi Environment Ready!"
 echo ""
 log_success "📊 Available Assets:"
-log_detail "   ├─ ${CYAN}TokenA${NC}: ${WHITE}900,000${NC} (100k in LP)"
+log_detail "   ├─ ${CYAN}TokenA${NC}: ${WHITE}890,000${NC} (100k in LP, 10k in staking rewards)"
 log_detail "   └─ ${CYAN}TokenB${NC}: ${WHITE}900,000${NC} (100k in LP)"
 echo ""
 log_success "🏊 Increment Fi Liquidity Pool:"
@@ -348,7 +355,7 @@ log_detail "   └─ Type: ${YELLOW}Standard${NC} (non-stable)"
 echo ""
 log_success "🎯 Increment Fi Staking Pool #${WHITE}0${NC}:"
 log_detail "   ├─ LP Token: ${CYAN}TokenA-TokenB${NC}"
-log_detail "   ├─ Rewards: ${YELLOW}LP Tokens${NC}"
+log_detail "   ├─ Rewards: ${YELLOW}TokenA${NC} (10,000 funded)"
 log_detail "   ├─ Staked: ${WHITE}50,000${NC} LP tokens"
 log_detail "   └─ Status: ${GREEN}Active${NC}"
 echo ""
